@@ -10,6 +10,15 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = await request.json();
 
+    // Validate input
+    if (!email || !password) {
+      return NextResponse.json(
+        { message: "Email and password are required" },
+        { status: 400 }
+      );
+    }
+
+    // Find user by email
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -19,6 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Compare password
     const isMatch = await bcrypt.compare(
       password,
       user.password
@@ -31,12 +41,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Login successful
     return NextResponse.json(
-      { message: "Login successful" },
+      {
+        message: "Login successful",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+      },
       { status: 200 }
     );
   } catch (error) {
-    console.error(error);
+    console.error("Login Error:", error);
 
     return NextResponse.json(
       { message: "Server Error" },
